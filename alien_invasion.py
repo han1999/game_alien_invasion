@@ -2,7 +2,7 @@ import sys
 import pygame
 from settings import Settings
 from ship import Ship
-
+from bullet import Bullet
 
 class AlienInvasion:
     def __init__(self):
@@ -16,17 +16,29 @@ class AlienInvasion:
         self.bg_color = (100, 200, 100)
 
         self.ship = Ship(self)
+        self.bullets = pygame.sprite.Group() # bullets继承自sprite
+
         print('now ok')
 
     def run_game(self):
         while True:
             self._check_events()
             self.ship.update()  # 先ship.update() 然后_update_screen来把坐标更新反映到画面上
+            self._update_bullets()
             self._update_screen()
+
+    def _update_bullets(self):
+        self.bullets.update()
+        for bullet in self.bullets.copy():
+            if bullet.rect.bottom <= 0:
+                self.bullets.remove(bullet)
+            # print(len(self.bullets))
 
     def _update_screen(self):
         self.screen.fill(self.settings.bg_color)
         self.ship.blitme()
+        for bullet in self.bullets.sprites():
+            bullet.draw_bullet()
         pygame.display.flip()
 
     def _check_events(self):
@@ -51,6 +63,13 @@ class AlienInvasion:
             self.ship.moving_left = True
         elif event.key == pygame.K_q:
             sys.exit()
+        elif event.key == pygame.K_SPACE:
+            self._fire_bullet()
+
+    def _fire_bullet(self):
+        if len(self.bullets)<self.settings.bullet_allowed:
+            new_bullet=Bullet(self)
+            self.bullets.add(new_bullet)
 
 
 if __name__ == '__main__':
